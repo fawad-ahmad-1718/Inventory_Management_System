@@ -10,10 +10,14 @@ WORKDIR /var/www/html
 
 COPY . .
 
+RUN rm -f .env
+
 RUN composer install --no-dev --optimize-autoloader
 
-RUN php artisan config:cache && php artisan view:cache && php artisan route:cache
+RUN php artisan config:clear
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 80
+
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
