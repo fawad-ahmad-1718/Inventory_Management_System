@@ -1,18 +1,25 @@
-FROM dunglas/frankenphp
+FROM php:8.2-apache
 
-WORKDIR /app
+RUN apt-get update && apt-get install -y \
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+RUN a2enmod rewrite
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
 
 COPY . .
 
 RUN rm -f .env bootstrap/cache/*.php
 
+COPY .env.example .env
+
 RUN composer install --no-dev --optimize-autoloader
 
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-ENV FRANKENPHP_CONFIG="worker ./public/index.php"
-ENV SERVER_NAME=":${PORT:-8080}"
+COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-CMD ["sh", "-c", "php artisan config:cache && php artisan migrate --force && frankenphp run"]
+EXPOSE 80
