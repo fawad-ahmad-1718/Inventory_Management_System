@@ -23,3 +23,5 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
 EXPOSE 80
+
+CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
